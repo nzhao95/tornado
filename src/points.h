@@ -9,7 +9,7 @@ class Points{
 
 public :
     std::vector< point3d > positions;
-    int size;
+    unsigned int size;
 
     void clear() {
         positions.clear();
@@ -23,18 +23,43 @@ public :
 
     void make3d () {
         point3d bb(FLT_MAX,FLT_MAX,FLT_MAX) , BB(-FLT_MAX,-FLT_MAX,-FLT_MAX);
-        for( unsigned int n = 0 ; n < positions.size() ; ++n ) {
-            bb = point3d::min(bb , positions[n]);
-            BB = point3d::max(BB , positions[n]);
-        }
-        float radius = (BB[0]-bb[0])*0.5f;
-        bool sign = positions[0][0] < BB[0] - radius;
-        for( unsigned int n = 0 ; n < positions.size() ; ++n ) {
-            if (n > 1) {
-                sign = positions[n][0] > positions[n-1][0];
+        bool sign = positions[1][0] > positions[0][0];
+        unsigned int start = 0;
+        unsigned int end = 1;
+        while (end < size - 1) {
+            while (end < size - 1 && (positions[end][0] - positions[end-1][0] > 0 == sign)) {
+                bb = point3d::min(bb , positions[end]);
+                BB = point3d::max(BB , positions[end]);
+                end += 1;
             }
-            positions[n][2] = sqrt(pow(radius, 2) - pow(positions[n][0], 2)) * (sign ? 1 : -1);
+            float mid = (BB[0]+bb[0])*0.5f;
+            float radius = (BB[0]-bb[0])*0.5f;
+            for( int n = start ; n < end + 1 ; ++n ) {
+                positions[n][2] = sqrt(pow(radius, 2) - pow(positions[n][0] - mid, 2)) * (sign ? 1 : -1);
+            }
+            start = end -1;
+            sign = !sign;
+            bb = point3d(FLT_MAX,FLT_MAX,FLT_MAX);
+            BB = point3d(-FLT_MAX,-FLT_MAX,-FLT_MAX);
         }
+    }
+
+    void filter () {
+        std::vector< point3d > new_positions;
+        new_positions.clear();
+        int last_selected = 0;
+        new_positions.push_back(positions[0]);
+        for (int i = 1; i<size-1 ; ++i){
+            if ((positions[i][0] - positions[i-1][0])*(positions[i+1][0] - positions[i][0]) < 0 || last_selected > 2) {
+                new_positions.push_back(positions[i]);
+                last_selected = 0;
+            }
+            else {
+                last_selected += 1;
+            }
+        }
+        positions = new_positions;
+        size = new_positions.size();
     }
 
     point3d deCasteljau(unsigned int n, float u) {

@@ -41,6 +41,7 @@ class MyViewer : public QGLViewer , public QOpenGLFunctions_4_3_Core
     Points points;
     bool drawing;
     bool pen_down;
+    bool control_points;
 
     QWidget * controls;
 
@@ -61,6 +62,7 @@ public :
         DetailedAction * openCamera = new DetailedAction( QIcon("./icons/open_camera.png") , "Open camera" , "Open camera" , this , this , SLOT(openCamera()) );
         DetailedAction * saveSnapShotPlusPlus = new DetailedAction( QIcon("./icons/save_snapshot.png") , "Save snapshot" , "Save snapshot" , this , this , SLOT(saveSnapShotPlusPlus()) );
         DetailedAction * draw = new DetailedAction( QIcon("./icons/draw.png") , "Drawing mode" , "Drawing mode" , this , this , SLOT(toggle_drawing()) );
+        DetailedAction * showControlPoints = new DetailedAction( QIcon("./icons/points.png") , "Control points" , "Control points" , this , this , SLOT(toggle_control_points()) );
 
         // Add them :
         toolBar->addAction( open_mesh );
@@ -70,6 +72,7 @@ public :
         toolBar->addAction( openCamera );
         toolBar->addAction( saveSnapShotPlusPlus );
         toolBar->addAction( draw );
+        toolBar->addAction( showControlPoints );
     }
 
 
@@ -98,17 +101,27 @@ public :
         glBegin(GL_LINE_STRIP);
 
         if (points.size > 0) {
-            glVertex3f(points.positions[0][0], points.positions[0][1], points.positions[0][2]);
             unsigned int n = 0;
-            while (n < points.positions.size()){
-                for (int k = 1; k < 10; ++k) {
-                    point3d c = points.deCasteljau(n, 0.1 * k);
+            while (n < points.size){
+                for (int k = 0; k < 51; ++k) {
+                    point3d c = points.deCasteljau(n, 0.02 * k);
                     glVertex3f(c[0], c[1], c[2]);
                 }
                 n += 3;
             }
         }
         glEnd();
+
+        if (control_points) {
+            glPointSize(5);
+            glColor3f(0.0,0.5,0.3);
+            glBegin(GL_POINTS);
+            for (point3d p : points.positions) {
+                glVertex3f(p[0], p[1], p[2]);
+            }
+            glEnd();
+        }
+
     }
 
     void pickBackgroundColor() {
@@ -162,6 +175,7 @@ public :
         points.clear();
         drawing = true;
         pen_down = false;
+        control_points = true;
     }
 
     QString helpString() const {
@@ -194,6 +208,10 @@ public :
         }
         else if (event->key() == Qt::Key_D) {
             points.make3d();
+            update();
+        }
+        else if (event->key() == Qt::Key_F) {
+            points.filter();
             update();
         }
         else if( event->key() == Qt::Key_T ) {
@@ -242,7 +260,7 @@ public :
             point3d last_point = points.positions.back();
             bool found;
             point3d new_point = camera()->pointUnderPixel(e->pos(), found);
-            if (pow(last_point[0] - new_point[0], 2) + pow(last_point[1] - new_point[1], 2) > 1) {
+            if (pow(last_point[0] - new_point[0], 2) + pow(last_point[1] - new_point[1], 2) > 0.1) {
                 points.add(new_point);
             }
             update();
@@ -369,6 +387,11 @@ public slots:
     }
     void toggle_drawing(){
         drawing = !drawing;
+    }
+
+    void toggle_control_points() {
+        control_points = !control_points;
+        update();
     }
 };
 
