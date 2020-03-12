@@ -50,7 +50,7 @@ public :
         int last_selected = 0;
         new_positions.push_back(positions[0]);
         for (int i = 1; i<size-1 ; ++i){
-            if ((positions[i][0] - positions[i-1][0])*(positions[i+1][0] - positions[i][0]) < 0 || last_selected > 2) {
+            if ((positions[i][0] - positions[i-1][0])*(positions[i+1][0] - positions[i][0]) < 0 || last_selected > 1) {
                 new_positions.push_back(positions[i]);
                 last_selected = 0;
             }
@@ -60,6 +60,21 @@ public :
         }
         positions = new_positions;
         size = new_positions.size();
+    }
+
+    point3d deCasteljau(float t) {
+        unsigned int n = positions.size();
+        point3d d[n];
+        for( unsigned int r = 0 ; r < n ; ++r )
+            d[r] = positions[r];
+
+        for( unsigned int r = 0 ; r < n-1 ; ++r ){
+            for( unsigned int j = 0 ; j < n-1-r  ; ++j ) {
+                d[j] = (1.0 - t) * d[j] + t * d[j+1];
+            }
+        }
+
+        return d[0];
     }
 
     point3d deCasteljau(unsigned int n, float u) {

@@ -6,6 +6,7 @@
 
 //Points stuff
 #include "points.h"
+#include "beziercurve.h"
 
 // Parsing:
 #include "BasicIO.h"
@@ -63,6 +64,7 @@ public :
         DetailedAction * saveSnapShotPlusPlus = new DetailedAction( QIcon("./icons/save_snapshot.png") , "Save snapshot" , "Save snapshot" , this , this , SLOT(saveSnapShotPlusPlus()) );
         DetailedAction * draw = new DetailedAction( QIcon("./icons/draw.png") , "Drawing mode" , "Drawing mode" , this , this , SLOT(toggle_drawing()) );
         DetailedAction * showControlPoints = new DetailedAction( QIcon("./icons/points.png") , "Control points" , "Control points" , this , this , SLOT(toggle_control_points()) );
+        DetailedAction * clear = new DetailedAction( QIcon("./icons/trash.png") , "Clear" , "Clear" , this , this , SLOT(clear()) );
 
         // Add them :
         toolBar->addAction( open_mesh );
@@ -73,6 +75,7 @@ public :
         toolBar->addAction( saveSnapShotPlusPlus );
         toolBar->addAction( draw );
         toolBar->addAction( showControlPoints );
+        toolBar->addAction( clear );
     }
 
 
@@ -95,19 +98,22 @@ public :
         glEnd();
 
 
-
         glPointSize(5);
         glColor3f(0.9,0.5,0.3);
         glBegin(GL_LINE_STRIP);
 
         if (points.size > 0) {
-            unsigned int n = 0;
-            while (n < points.size){
-                for (int k = 0; k < 51; ++k) {
-                    point3d c = points.deCasteljau(n, 0.02 * k);
-                    glVertex3f(c[0], c[1], c[2]);
-                }
-                n += 3;
+//            unsigned int n = 0;
+//            while (n < points.size){
+//                for (int k = 0; k < 51; ++k) {
+//                    point3d c = points.deCasteljau(n, 0.02 * k);
+//                    glVertex3f(c[0], c[1], c[2]);
+//                }
+//                n += 3;
+//            }
+            for (int n = 0; n < 101; n++ ){
+                point3d p = points.deCasteljau(0.01 * n);
+                glVertex3f(p[0], p[1], p[2]);
             }
         }
         glEnd();
@@ -391,6 +397,17 @@ public slots:
 
     void toggle_control_points() {
         control_points = !control_points;
+        update();
+    }
+
+    void clear() {
+        points.positions.clear();
+        points.size = 0;
+
+
+        setSceneCenter( qglviewer::Vec( 0 , 0 , 0 ) );
+        setSceneRadius( 10.f );
+        showEntireScene();
         update();
     }
 };
