@@ -34,6 +34,7 @@
 #include "qt/QSmartAction.h"
 
 
+
 class MyViewer : public QGLViewer , public QOpenGLFunctions_4_3_Core
 {
     Q_OBJECT
@@ -103,14 +104,6 @@ public :
         glBegin(GL_LINE_STRIP);
 
         if (points.size > 0) {
-//            unsigned int n = 0;
-//            while (n < points.size){
-//                for (int k = 0; k < 51; ++k) {
-//                    point3d c = points.deCasteljau(n, 0.02 * k);
-//                    glVertex3f(c[0], c[1], c[2]);
-//                }
-//                n += 3;
-//            }
             for (int n = 0; n < 101; n++ ){
                 point3d p = points.deCasteljau(0.01 * n);
                 glVertex3f(p[0], p[1], p[2]);

@@ -35,7 +35,7 @@ public :
             float mid = (BB[0]+bb[0])*0.5f;
             float radius = (BB[0]-bb[0])*0.5f;
             for( int n = start ; n < end + 1 ; ++n ) {
-                positions[n][2] = sqrt(pow(radius, 2) - pow(positions[n][0] - mid, 2)) * (sign ? 1 : -1);
+                positions[n][2] = sqrt(abs(pow(radius, 2) - pow(positions[n][0] - mid, 2))) * (sign ? 1 : -1);
             }
             start = end -1;
             sign = !sign;
