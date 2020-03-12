@@ -105,8 +105,10 @@ public :
 
         if (points.size > 0) {
             for (int n = 0; n < 101; n++ ){
-                point3d p = points.deCasteljau(0.01 * n);
-                glVertex3f(p[0], p[1], p[2]);
+                {
+                    point3d p = points.deCasteljau(0.01 * n);
+                    glVertex3f(p[0], p[1], p[2]);
+                }
             }
         }
         glEnd();
