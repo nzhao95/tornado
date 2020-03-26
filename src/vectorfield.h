@@ -85,17 +85,18 @@ public :
                 for (unsigned int k = 0; k < grid_size-1; ++k) {
                     point3d x = point3d(i*grid_step, j*grid_step, k*grid_step) + grid_bl;
                     IsoSurfacePolygonizer::GRIDCELL gridcell;
-                    point3d vertex_order[8] = {point3d(0,0,0), x + point3d(1, 0, 0), x + point3d(1, 0, 1), x + point3d(0, 0, 1),
-                                      x + point3d(0, 1, 0), x + point3d(1, 1, 0), x + point3d(1, 1, 1), x + point3d(0, 1, 1) };
+                    point3d vertex_order[8] = {point3d(0, 0, 0), point3d(1, 0, 0), point3d(1, 0, 1), point3d(0, 0, 1),
+                                               point3d(0, 1, 0), point3d(1, 1, 0), point3d(1, 1, 1), point3d(0, 1, 1) };
                     for (int n = 0; n < 8; ++n){
                         gridcell.p[n] = x + vertex_order[n] * grid_step;
                         gridcell.val[n] = grid[i+vertex_order[n][0]][j+vertex_order[n][1]][k+vertex_order[n][2]].norm();
                     }
-                    std::vector<IsoSurfacePolygonizer::TRIANGLE> new_triangles = Polygonise(gridcell, 10);
+                    std::vector<IsoSurfacePolygonizer::TRIANGLE> new_triangles = Polygonise(gridcell, 5);
                     for (IsoSurfacePolygonizer::TRIANGLE t : new_triangles) {
                         triangles.push_back(t.p[0]);
                         triangles.push_back(t.p[1]);
                         triangles.push_back(t.p[2]);
+
                     }
                 }
             }

@@ -69,7 +69,7 @@ public :
         DetailedAction * draw = new DetailedAction( QIcon("./icons/draw.png") , "Drawing mode" , "Drawing mode" , this , this , SLOT(toggle_drawing()) );
         DetailedAction * showControlPoints = new DetailedAction( QIcon("./icons/points.png") , "Control points" , "Control points" , this , this , SLOT(toggle_control_points()) );
         DetailedAction * clear = new DetailedAction( QIcon("./icons/trash.png") , "Clear" , "Clear" , this , this , SLOT(clear()) );
-        DetailedAction * grid = new DetailedAction( QIcon("./icons/trash.png") , "Grid" , "Grid" , this , this , SLOT(grid()) );
+        DetailedAction * grid = new DetailedAction( QIcon("./icons/cube.png") , "Grid" , "Grid" , this , this , SLOT(grid()) );
 
         // Add them :
         toolBar->addAction( open_mesh );
@@ -80,8 +80,8 @@ public :
         toolBar->addAction( saveSnapShotPlusPlus );
         toolBar->addAction( draw );
         toolBar->addAction( showControlPoints );
-        toolBar->addAction( clear );
         toolBar->addAction( grid );
+        toolBar->addAction( clear );
     }
 
 
@@ -119,7 +119,6 @@ public :
             glEnd();
 
             if (showGrid) {
-
                 glBegin(GL_TRIANGLES);
                 for( unsigned int t = 0 ; t < field.triangles.size() ; ++t ) {
                     glVertex3f(field.triangles[t][0],field.triangles[t][1],field.triangles[t][2]);

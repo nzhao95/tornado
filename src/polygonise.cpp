@@ -47,6 +47,7 @@ std::vector<IsoSurfacePolygonizer::TRIANGLE> IsoSurfacePolygonizer::Polygonise(G
    int cubeindex;
    point3d vertlist[12];
    std::vector<TRIANGLE> triangles;
+   triangles.clear();
 
    /*
       Determine the index into the edge table which
