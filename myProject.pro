@@ -15,11 +15,14 @@ HEADERS += ./src/point3.h \
     ./src/MyViewer.h \
     ./src/gl/GLUtilityMethods.h \
     ./src/gl/BasicColors.h \
-    src/points.h \
-    src/beziercurve.h
+    src/beziercurve.h \
+    src/vectorfield.h \
+    src/centerline.h \
+    src/polygonise.h
 SOURCES += ./src/main.cpp \
     ./src/gl/GLUtilityMethods.cpp\
-    ./src/gl/BasicColors.cpp
+    ./src/gl/BasicColors.cpp \
+    src/polygonise.cpp
 
 
 

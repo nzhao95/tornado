@@ -5,8 +5,9 @@
 #include "Mesh.h"
 
 //Points stuff
-#include "points.h"
+#include "centerline.h"
 #include "beziercurve.h"
+#include "vectorfield.h"
 
 // Parsing:
 #include "BasicIO.h"
@@ -40,10 +41,12 @@ class MyViewer : public QGLViewer , public QOpenGLFunctions_4_3_Core
     Q_OBJECT
 
     Mesh mesh;
-    Points points;
+    centerLine center_line;
+    vectorField field;
     bool drawing;
     bool pen_down;
     bool control_points;
+    bool showGrid;
 
     QWidget * controls;
 
@@ -66,6 +69,7 @@ public :
         DetailedAction * draw = new DetailedAction( QIcon("./icons/draw.png") , "Drawing mode" , "Drawing mode" , this , this , SLOT(toggle_drawing()) );
         DetailedAction * showControlPoints = new DetailedAction( QIcon("./icons/points.png") , "Control points" , "Control points" , this , this , SLOT(toggle_control_points()) );
         DetailedAction * clear = new DetailedAction( QIcon("./icons/trash.png") , "Clear" , "Clear" , this , this , SLOT(clear()) );
+        DetailedAction * grid = new DetailedAction( QIcon("./icons/trash.png") , "Grid" , "Grid" , this , this , SLOT(grid()) );
 
         // Add them :
         toolBar->addAction( open_mesh );
@@ -77,6 +81,7 @@ public :
         toolBar->addAction( draw );
         toolBar->addAction( showControlPoints );
         toolBar->addAction( clear );
+        toolBar->addAction( grid );
     }
 
 
@@ -101,23 +106,33 @@ public :
 
         glPointSize(5);
         glColor3f(0.9,0.5,0.3);
-        glBegin(GL_LINE_STRIP);
 
-        if (points.size > 0) {
+
+        if (center_line.size > 0) {
+            bezierCurve<point3d> curve;
+            curve.control_p = center_line.positions;
+            glBegin(GL_LINE_STRIP);
             for (int n = 0; n < 101; n++ ){
-                {
-                    point3d p = points.deCasteljau(0.01 * n);
-                    glVertex3f(p[0], p[1], p[2]);
+                point3d p = curve.getValue(0.01 * n);
+                glVertex3f(p[0], p[1], p[2]);
+            }
+            glEnd();
+
+            if (showGrid) {
+
+                glBegin(GL_TRIANGLES);
+                for( unsigned int t = 0 ; t < field.triangles.size() ; ++t ) {
+                    glVertex3f(field.triangles[t][0],field.triangles[t][1],field.triangles[t][2]);
                 }
+                glEnd();
             }
         }
-        glEnd();
 
         if (control_points) {
             glPointSize(5);
             glColor3f(0.0,0.5,0.3);
             glBegin(GL_POINTS);
-            for (point3d p : points.positions) {
+            for (point3d p : center_line.positions) {
                 glVertex3f(p[0], p[1], p[2]);
             }
             glEnd();
@@ -173,10 +188,11 @@ public :
         setSceneRadius( 10.f );
         showEntireScene();
 
-        points.clear();
+        center_line.clear();
         drawing = true;
         pen_down = false;
         control_points = true;
+        showGrid = false;
     }
 
     QString helpString() const {
@@ -208,11 +224,11 @@ public :
             help();
         }
         else if (event->key() == Qt::Key_D) {
-            points.make3d();
+            center_line.make3d();
             update();
         }
         else if (event->key() == Qt::Key_F) {
-            points.filter();
+            center_line.filter();
             update();
         }
         else if( event->key() == Qt::Key_T ) {
@@ -248,7 +264,7 @@ public :
     void mousePressEvent(QMouseEvent* e ) {
         if (drawing){
             bool found;
-            points.add(camera()->pointUnderPixel(e->pos(), found));
+            center_line.add(camera()->pointUnderPixel(e->pos(), found));
             pen_down = true;
         }
         else {
@@ -258,11 +274,11 @@ public :
 
     void mouseMoveEvent(QMouseEvent* e  ){
         if (drawing && pen_down){
-            point3d last_point = points.positions.back();
+            point3d last_point = center_line.positions.back();
             bool found;
             point3d new_point = camera()->pointUnderPixel(e->pos(), found);
             if (pow(last_point[0] - new_point[0], 2) + pow(last_point[1] - new_point[1], 2) > 0.1) {
-                points.add(new_point);
+                center_line.add(new_point);
             }
             update();
         }
@@ -271,6 +287,7 @@ public :
 
     void mouseReleaseEvent(QMouseEvent* e  ) {
         pen_down = false;
+        drawing = false;
         QGLViewer::mouseReleaseEvent(e);
     }
 
@@ -396,13 +413,25 @@ public slots:
     }
 
     void clear() {
-        points.positions.clear();
-        points.size = 0;
+        center_line.positions.clear();
+        center_line.size = 0;
 
 
         setSceneCenter( qglviewer::Vec( 0 , 0 , 0 ) );
         setSceneRadius( 10.f );
         showEntireScene();
+        update();
+    }
+
+    void grid() {
+
+        bezierCurve<point3d> curve;
+        curve.control_p = center_line.positions;
+        field.curve = curve;
+        field.init();
+        field.computeGrid();
+        field.computePolygon();
+        showGrid = true;
         update();
     }
 };
