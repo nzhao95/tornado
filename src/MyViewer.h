@@ -17,7 +17,6 @@
 #include <gl/openglincludeQtComp.h>
 #include <GL/glext.h>
 #include <QOpenGLFunctions_4_3_Core>
-#include <QOpenGLFunctions>
 #include <QGLViewer/qglviewer.h>
 
 #include <gl/GLUtilityMethods.h>
