@@ -21,7 +21,7 @@ public :
     //grid stuff
     std::vector< std::vector< std::vector< point3d >>> grid;
     unsigned int grid_size;
-    float grid_step = 1;
+    float grid_step = 1.f;
     point3d grid_bl;
 
     //kelvinlets stuff
@@ -30,8 +30,13 @@ public :
 
     //polygon stuff
 
-    std::vector<point3d> triangles;
+    std::vector<std::vector<point3d>> triangles;
 
+    void clear() {
+        curve.control_p.clear();
+        grid.clear();
+        triangles.clear();
+    }
 
     void init() {
         grid.clear();
@@ -42,8 +47,10 @@ public :
             BB = point3d::max(BB , curve.getValue(t));
             t += curve_step;
         }
-        grid_bl = bb - point3d(1,1,1);
-        grid_size = (unsigned int) (std::max(BB[0] - bb[0], std::max(BB[1] - bb[1], BB[2] - bb[2]) + 2) / grid_step);
+        point3d center = (BB + bb) * 0.5;
+        float length = std::max(BB[0] - bb[0], std::max(BB[1] - bb[1], BB[2] - bb[2]));
+        grid_size = (unsigned int) ((length + 10) / grid_step);
+        grid_bl = center - point3d(length, length, length) * 0.5 - point3d(5,5,5) / grid_step;
         grid.resize(grid_size);
         for (unsigned int i = 0; i < grid_size; ++i) {
             grid[i].resize(grid_size);
@@ -79,27 +86,29 @@ public :
         }
     }
 
-    void computePolygon() {
+    void computePolygon(float isovalue) {
+        std::vector<point3d> polygon;
+        polygon.clear();
         for (unsigned int i = 0; i < grid_size-1; ++i) {
             for (unsigned int j = 0; j < grid_size-1; ++j) {
                 for (unsigned int k = 0; k < grid_size-1; ++k) {
                     point3d x = point3d(i*grid_step, j*grid_step, k*grid_step) + grid_bl;
                     IsoSurfacePolygonizer::GRIDCELL gridcell;
-                    point3d vertex_order[8] = {point3d(0,0,0), x + point3d(1, 0, 0), x + point3d(1, 0, 1), x + point3d(0, 0, 1),
-                                      x + point3d(0, 1, 0), x + point3d(1, 1, 0), x + point3d(1, 1, 1), x + point3d(0, 1, 1) };
+                    point3d vertex_order[8] = {point3d(0, 0, 0), point3d(1, 0, 0), point3d(1, 0, 1), point3d(0, 0, 1),
+                                               point3d(0, 1, 0), point3d(1, 1, 0), point3d(1, 1, 1), point3d(0, 1, 1) };
                     for (int n = 0; n < 8; ++n){
                         gridcell.p[n] = x + vertex_order[n] * grid_step;
                         gridcell.val[n] = grid[i+vertex_order[n][0]][j+vertex_order[n][1]][k+vertex_order[n][2]].norm();
                     }
-                    std::vector<IsoSurfacePolygonizer::TRIANGLE> new_triangles = Polygonise(gridcell, 10);
-                    for (IsoSurfacePolygonizer::TRIANGLE t : new_triangles) {
-                        triangles.push_back(t.p[0]);
-                        triangles.push_back(t.p[1]);
-                        triangles.push_back(t.p[2]);
+                    std::vector<point3d> new_triangles = Polygonise(gridcell, isovalue);
+                    for (auto t : new_triangles) {
+                        polygon.push_back(t);
+
                     }
                 }
             }
         }
+        triangles.push_back(polygon);
     }
 
 
