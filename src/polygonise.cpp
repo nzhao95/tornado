@@ -41,12 +41,12 @@ point3d IsoSurfacePolygonizer::VertexInterp(double isolevel, point3d p1, point3d
 
 
 
-std::vector<IsoSurfacePolygonizer::TRIANGLE> IsoSurfacePolygonizer::Polygonise(GRIDCELL grid,double isolevel)
+std::vector<point3d> IsoSurfacePolygonizer::Polygonise(GRIDCELL grid,double isolevel)
 {
    int i;
    int cubeindex;
    point3d vertlist[12];
-   std::vector<TRIANGLE> triangles;
+   std::vector<point3d> triangles;
    triangles.clear();
 
    /*
@@ -107,14 +107,12 @@ std::vector<IsoSurfacePolygonizer::TRIANGLE> IsoSurfacePolygonizer::Polygonise(G
 
    /* Create the triangle */
 
-   TRIANGLE triangle;
    for (i=0;triTable[cubeindex][i]!=-1;i+=3) {
-      triangle.p[0] = vertlist[triTable[cubeindex][i  ]];
-      triangle.p[1] = vertlist[triTable[cubeindex][i+1]];
-      triangle.p[2] = vertlist[triTable[cubeindex][i+2]];
+      triangles.push_back(vertlist[triTable[cubeindex][i  ]]);
+      triangles.push_back(vertlist[triTable[cubeindex][i+1]]);
+      triangles.push_back(vertlist[triTable[cubeindex][i+2]]);
 
    }
-triangles.push_back(triangle);
 
    return(triangles);
 }

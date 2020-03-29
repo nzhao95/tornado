@@ -7,9 +7,6 @@
 
 namespace IsoSurfacePolygonizer {
 
-struct TRIANGLE{
-   point3d p[3];
-} ;
 
 struct GRIDCELL{
    point3d p[8];
@@ -30,7 +27,7 @@ point3d VertexInterp(double isolevel, point3d p1, point3d p2, double valp1, doub
     0 will be returned if the grid cell is either totally above
    of totally below the isolevel.
 */
-std::vector<TRIANGLE> Polygonise(GRIDCELL grid,double isolevel);
+std::vector<point3d> Polygonise(GRIDCELL grid,double isolevel);
 
 
 

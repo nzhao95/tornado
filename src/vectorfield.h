@@ -21,7 +21,7 @@ public :
     //grid stuff
     std::vector< std::vector< std::vector< point3d >>> grid;
     unsigned int grid_size;
-    float grid_step = 0.5;
+    float grid_step = 1.f;
     point3d grid_bl;
 
     //kelvinlets stuff
@@ -44,8 +44,8 @@ public :
         }
         point3d center = (BB + bb) * 0.5;
         float length = std::max(BB[0] - bb[0], std::max(BB[1] - bb[1], BB[2] - bb[2]));
-        grid_size = (unsigned int) ((length + 2) / grid_step);
-        grid_bl = center - point3d(length, length, length) * 0.5;
+        grid_size = (unsigned int) ((length + 10) / grid_step);
+        grid_bl = center - point3d(length, length, length) * 0.5 - point3d(5,5,5) / grid_step;
         grid.resize(grid_size);
         for (unsigned int i = 0; i < grid_size; ++i) {
             grid[i].resize(grid_size);
@@ -93,11 +93,9 @@ public :
                         gridcell.p[n] = x + vertex_order[n] * grid_step;
                         gridcell.val[n] = grid[i+vertex_order[n][0]][j+vertex_order[n][1]][k+vertex_order[n][2]].norm();
                     }
-                    std::vector<IsoSurfacePolygonizer::TRIANGLE> new_triangles = Polygonise(gridcell, 5);
-                    for (IsoSurfacePolygonizer::TRIANGLE t : new_triangles) {
-                        triangles.push_back(t.p[0]);
-                        triangles.push_back(t.p[1]);
-                        triangles.push_back(t.p[2]);
+                    std::vector<point3d> new_triangles = Polygonise(gridcell, 5);
+                    for (auto t : new_triangles) {
+                        triangles.push_back(t);
 
                     }
                 }
