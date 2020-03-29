@@ -21,7 +21,7 @@ public :
     //grid stuff
     std::vector< std::vector< std::vector< point3d >>> grid;
     unsigned int grid_size;
-    float grid_step = 1;
+    float grid_step = 0.5;
     point3d grid_bl;
 
     //kelvinlets stuff
@@ -42,8 +42,10 @@ public :
             BB = point3d::max(BB , curve.getValue(t));
             t += curve_step;
         }
-        grid_bl = bb - point3d(1,1,1);
-        grid_size = (unsigned int) (std::max(BB[0] - bb[0], std::max(BB[1] - bb[1], BB[2] - bb[2]) + 2) / grid_step);
+        point3d center = (BB + bb) * 0.5;
+        float length = std::max(BB[0] - bb[0], std::max(BB[1] - bb[1], BB[2] - bb[2]));
+        grid_size = (unsigned int) ((length + 2) / grid_step);
+        grid_bl = center - point3d(length, length, length) * 0.5;
         grid.resize(grid_size);
         for (unsigned int i = 0; i < grid_size; ++i) {
             grid[i].resize(grid_size);

@@ -119,6 +119,7 @@ public :
             glEnd();
 
             if (showGrid) {
+
                 glBegin(GL_TRIANGLES);
                 for( unsigned int t = 0 ; t < field.triangles.size() ; ++t ) {
                     glVertex3f(field.triangles[t][0],field.triangles[t][1],field.triangles[t][2]);
@@ -170,7 +171,7 @@ public :
 
         //
         glShadeModel(GL_SMOOTH);
-        glFrontFace(GL_CCW); // CCW ou CW
+        glDisable(GL_CULL_FACE);
 
         glEnable(GL_DEPTH);
         glEnable(GL_DEPTH_TEST);
