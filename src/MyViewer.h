@@ -119,12 +119,14 @@ public :
             glEnd();
 
             if (showGrid) {
-
-                glBegin(GL_TRIANGLES);
-                for( unsigned int t = 0 ; t < field.triangles.size() ; ++t ) {
-                    glVertex3f(field.triangles[t][0],field.triangles[t][1],field.triangles[t][2]);
+                for (unsigned int n = 0; n < field.triangles.size(); ++n){
+                    glColor4f(sin(n),cos(n),cos(n+1), 1.0 - n / (float) field.triangles.size());
+                    glBegin(GL_TRIANGLES);
+                    for( unsigned int t = 0 ; t < field.triangles[n].size() ; ++t ) {
+                        glVertex3f(field.triangles[n][t][0],field.triangles[n][t][1],field.triangles[n][t][2]);
+                    }
+                    glEnd();
                 }
-                glEnd();
             }
         }
 
@@ -173,12 +175,14 @@ public :
         glShadeModel(GL_SMOOTH);
         glDisable(GL_CULL_FACE);
 
+
         glEnable(GL_DEPTH);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
 
         glEnable(GL_CLIP_PLANE0);
 
+        glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glEnable(GL_COLOR_MATERIAL);
@@ -413,9 +417,9 @@ public slots:
     }
 
     void clear() {
-        center_line.positions.clear();
-        center_line.size = 0;
+        center_line.clear();
 
+        field.clear();
 
         setSceneCenter( qglviewer::Vec( 0 , 0 , 0 ) );
         setSceneRadius( 10.f );
@@ -430,7 +434,9 @@ public slots:
         field.curve = curve;
         field.init();
         field.computeGrid();
-        field.computePolygon();
+        field.computePolygon(20);
+        field.computePolygon(10);
+        field.computePolygon(5);
         showGrid = true;
         update();
     }

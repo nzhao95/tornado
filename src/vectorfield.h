@@ -30,8 +30,13 @@ public :
 
     //polygon stuff
 
-    std::vector<point3d> triangles;
+    std::vector<std::vector<point3d>> triangles;
 
+    void clear() {
+        curve.control_p.clear();
+        grid.clear();
+        triangles.clear();
+    }
 
     void init() {
         grid.clear();
@@ -81,7 +86,9 @@ public :
         }
     }
 
-    void computePolygon() {
+    void computePolygon(float isovalue) {
+        std::vector<point3d> polygon;
+        polygon.clear();
         for (unsigned int i = 0; i < grid_size-1; ++i) {
             for (unsigned int j = 0; j < grid_size-1; ++j) {
                 for (unsigned int k = 0; k < grid_size-1; ++k) {
@@ -93,14 +100,15 @@ public :
                         gridcell.p[n] = x + vertex_order[n] * grid_step;
                         gridcell.val[n] = grid[i+vertex_order[n][0]][j+vertex_order[n][1]][k+vertex_order[n][2]].norm();
                     }
-                    std::vector<point3d> new_triangles = Polygonise(gridcell, 5);
+                    std::vector<point3d> new_triangles = Polygonise(gridcell, isovalue);
                     for (auto t : new_triangles) {
-                        triangles.push_back(t);
+                        polygon.push_back(t);
 
                     }
                 }
             }
         }
+        triangles.push_back(polygon);
     }
 
 
