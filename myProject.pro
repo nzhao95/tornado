@@ -5,6 +5,7 @@ INCLUDEPATH += .
 INCLUDEPATH += ./src
 QT += opengl xml
 CONFIG += qt \
+    link_pkgconfig \
     release
 MOC_DIR = ./tmp/moc
 OBJECTS_DIR = ./tmp/obj
@@ -26,7 +27,9 @@ SOURCES += ./src/main.cpp \
     ./src/gl/BasicColors.cpp \
     src/polygonise.cpp
 
+PKGCONFIG += gsl glu
 
+LIBS += -lgomp
 
 EXT_DIR = extern
 
@@ -41,12 +44,6 @@ EXT_DIR = extern
 
 
 
-LIBS += -lglut \
-    -lGLU
-LIBS += -lgsl \
-    -lgomp
-LIBS += -lblas \
-    -lgomp
 release:QMAKE_CXXFLAGS_RELEASE += -O3 \
     -fopenmp
 release:QMAKE_CFLAGS_RELEASE += -O3 \

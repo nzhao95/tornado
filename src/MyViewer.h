@@ -18,7 +18,6 @@
 #include <gl/openglincludeQtComp.h>
 #include <GL/glext.h>
 #include <QOpenGLFunctions_4_3_Core>
-#include <QOpenGLFunctions>
 #include <QGLViewer/qglviewer.h>
 
 #include <gl/GLUtilityMethods.h>
@@ -126,8 +125,12 @@ public :
                 for (unsigned int n = 0; n < field.triangles.size(); ++n){
                     glColor4f(sin(n),cos(n),cos(n+1), 1.0 - n / (float) field.triangles.size());
                     glBegin(GL_TRIANGLES);
-                    for( unsigned int t = 0 ; t < field.triangles[n].size() ; ++t ) {
-                        glVertex3f(field.triangles[n][t][0],field.triangles[n][t][1],field.triangles[n][t][2]);
+                    for( unsigned int t = 0 ; t < field.triangles[n].size()/3 ; ++t ) {
+                        point3d nT = - point3d::cross( field.triangles[n][3*t+1] - field.triangles[n][3*t+0] , field.triangles[n][3*t+2] - field.triangles[n][3*t+0] ).direction();
+                        point3d::glNormal(nT); // apparently the triangles are CW and not CCW
+                        point3d::glVertex(field.triangles[n][3*t]);
+                        point3d::glVertex(field.triangles[n][3*t+1]);
+                        point3d::glVertex(field.triangles[n][3*t+2]);
                     }
                     glEnd();
                 }
