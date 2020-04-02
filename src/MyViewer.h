@@ -18,6 +18,7 @@
 #include <gl/openglincludeQtComp.h>
 #include <GL/glext.h>
 #include <QOpenGLFunctions_4_3_Core>
+#include <QOpenGLFunctions>
 #include <QGLViewer/qglviewer.h>
 
 #include <gl/GLUtilityMethods.h>
@@ -48,7 +49,6 @@ class MyViewer : public QGLViewer , public QOpenGLFunctions_4_3_Core
     bool control_points;
     bool showGrid;
 
-    vector<particle> particles;
     vector<vector<point3d>> path;
 
     QWidget * controls;
@@ -125,12 +125,8 @@ public :
                 for (unsigned int n = 0; n < field.triangles.size(); ++n){
                     glColor4f(sin(n),cos(n),cos(n+1), 1.0 - n / (float) field.triangles.size());
                     glBegin(GL_TRIANGLES);
-                    for( unsigned int t = 0 ; t < field.triangles[n].size()/3 ; ++t ) {
-                        point3d nT = - point3d::cross( field.triangles[n][3*t+1] - field.triangles[n][3*t+0] , field.triangles[n][3*t+2] - field.triangles[n][3*t+0] ).direction();
-                        point3d::glNormal(nT); // apparently the triangles are CW and not CCW
-                        point3d::glVertex(field.triangles[n][3*t]);
-                        point3d::glVertex(field.triangles[n][3*t+1]);
-                        point3d::glVertex(field.triangles[n][3*t+2]);
+                    for( unsigned int t = 0 ; t < field.triangles[n].size() ; ++t ) {
+                        glVertex3f(field.triangles[n][t][0],field.triangles[n][t][1],field.triangles[n][t][2]);
                     }
                     glEnd();
                 }
@@ -148,25 +144,28 @@ public :
         }
 
         glBegin(GL_POINTS);
-        for (int i = 0; i < particles.size(); i++)
-            particles[i].draw();
+        field.draw();
         glEnd();
 
         glColor3f(0.5,0.3,0.3);
-        for (int i = 0; i < particles.size(); i++){
-            glBegin(GL_LINE_STRIP);
-            for (int j = 0; j < path[i].size(); ++j)
-                glVertex3f(path[i][j][0], path[i][j][1], path[i][j][2]);
-            glEnd();
+        if (path.size() > 0) {
+            for (unsigned int i = 0; i < field.particles.size(); i++){
+                glBegin(GL_LINE_STRIP);
+                for (unsigned int j = 0; j < path[i].size(); ++j)
+                    glVertex3f(path[i][j][0], path[i][j][1], path[i][j][2]);
+                glEnd();
+            }
         }
 
     }
 
     void animate() {
-        for (int i = 0; i < particles.size(); i++){
-          particles[i].animate();
-            if (path[i].size() < 50)
-                path[i].push_back(particles[i].pos);
+        field.animate();
+        if (path.size() > 0) {
+            for (unsigned int i = 0; i < field.particles.size(); i++){
+                if (path[i].size() < 50)
+                    path[i].push_back(field.particles[i].pos);
+            }
         }
     }
 
@@ -269,13 +268,24 @@ public :
             toggleAnimation();
         }
         else if (event->key() == Qt::Key_P) {
+            if (field.isEmpty())
+                break;
             path.resize(20);
             for (int n = 0; n < 20; ++n) {
                 particle p;
-                p.pos = field.curve.getValue(0.05 * n) + point3d(10 - 0.5*n, 0, 0);
-                p.field = field;
-                particles.push_back(p);
+                p.pos = field.curve.getValue(0.05 * n) + point3d(10, 0, 0);
+                field.addParticle(p);
                 path[n].push_back(p.pos);
+            }
+            update();
+        }
+        else if (event->key() == Qt::Key_A) {
+            if (field.isEmpty())
+                break;
+            for (int n = 0; n < 100; ++n) {
+                particle p;
+                p.pos = field.curve.getValue(0.1) + point3d(10 * cos(n), 0, 10*sin(n));
+                field.addParticle(p);
             }
             update();
         }
@@ -468,12 +478,12 @@ public slots:
 
     void clear() {
         center_line.clear();
-        particles.clear();
         field.clear();
 
         setSceneCenter( qglviewer::Vec( 0 , 0 , 0 ) );
         setSceneRadius( 10.f );
         showEntireScene();
+        init();
         update();
     }
 

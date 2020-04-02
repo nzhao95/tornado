@@ -7,6 +7,7 @@
 #include "centerline.h"
 #include "beziercurve.h"
 #include "polygonise.h"
+#include "particle.h"
 
 
 class vectorField{
@@ -32,10 +33,16 @@ public :
 
     std::vector<std::vector<point3d>> triangles;
 
+    //particle stuff
+
+    unsigned int nSteps = 2;
+    std::vector<particle> particles;
+
     void clear() {
         curve.control_p.clear();
         grid.clear();
         triangles.clear();
+        particles.clear();
     }
 
     void init() {
@@ -131,6 +138,42 @@ public :
         return - a * (1/pow(r_e,3)+ 3*pow(epsilon, 3) / (2*pow(r_e, 5))) * c;
     }
 
+    point3d RungeKutta_RK4(point3d pos) {
+        point3d advectedTrajectory = point3d(0,0,0);
+        double timeStep = 1.0 / (double)(nSteps);
+        for( unsigned int s = 0 ; s < nSteps ; ++s ){
+            point3d xN = pos + advectedTrajectory;
+            point3d k1 = computeVelocity(xN);
+            point3d k2 = computeVelocity(xN + (timeStep/2)*k1);
+            point3d k3 = computeVelocity(xN + (timeStep/2)*k2);
+            point3d k4 = computeVelocity(xN + (timeStep)*k3);
+            advectedTrajectory += (timeStep/6) * (k1 + 2*k2 + 2*k3 + k4);
+        }
+        return advectedTrajectory;
+    }
+
+    void animate() {
+        for (unsigned int pIt; pIt < particles.size(); ++pIt) {
+            particles[pIt].advectedTrajectory = RungeKutta_RK4(particles[pIt].pos);
+            particles[pIt].animate();
+
+        }
+    }
+
+    void draw() {
+        for (unsigned int pIt; pIt < particles.size(); ++pIt) {
+            particles[pIt].draw();
+
+        }
+    }
+
+    void addParticle(particle p) {
+        particles.push_back(p);
+    }
+
+    bool isEmpty() {
+        return curve.control_p.size() > 0;
+    }
 
 };
 
