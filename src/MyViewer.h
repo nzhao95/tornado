@@ -162,7 +162,7 @@ public :
     void animate() {
         for (int i = 0; i < particles.size(); i++){
           particles[i].animate();
-            if (path[i].size() < 100)
+            if (path[i].size() < 50)
                 path[i].push_back(particles[i].pos);
         }
     }
@@ -269,7 +269,7 @@ public :
             path.resize(20);
             for (int n = 0; n < 20; ++n) {
                 particle p;
-                p.pos = field.curve.getValue(0.05 * n) + point3d(10, 0, 0);
+                p.pos = field.curve.getValue(0.05 * n) + point3d(10 - 0.5*n, 0, 0);
                 p.field = field;
                 particles.push_back(p);
                 path[n].push_back(p.pos);
