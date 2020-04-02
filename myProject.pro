@@ -18,7 +18,9 @@ HEADERS += ./src/point3.h \
     src/beziercurve.h \
     src/vectorfield.h \
     src/centerline.h \
-    src/polygonise.h
+    src/polygonise.h \
+    src/particle.h \
+    src/particle.h
 SOURCES += ./src/main.cpp \
     ./src/gl/GLUtilityMethods.cpp\
     ./src/gl/BasicColors.cpp \

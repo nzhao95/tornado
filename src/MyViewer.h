@@ -8,6 +8,7 @@
 #include "centerline.h"
 #include "beziercurve.h"
 #include "vectorfield.h"
+#include "particle.h"
 
 // Parsing:
 #include "BasicIO.h"
@@ -47,6 +48,9 @@ class MyViewer : public QGLViewer , public QOpenGLFunctions_4_3_Core
     bool pen_down;
     bool control_points;
     bool showGrid;
+
+    vector<particle> particles;
+    vector<vector<point3d>> path;
 
     QWidget * controls;
 
@@ -140,6 +144,27 @@ public :
             glEnd();
         }
 
+        glBegin(GL_POINTS);
+        for (int i = 0; i < particles.size(); i++)
+            particles[i].draw();
+        glEnd();
+
+        glColor3f(0.5,0.3,0.3);
+        for (int i = 0; i < particles.size(); i++){
+            glBegin(GL_LINE_STRIP);
+            for (int j = 0; j < path[i].size(); ++j)
+                glVertex3f(path[i][j][0], path[i][j][1], path[i][j][2]);
+            glEnd();
+        }
+
+    }
+
+    void animate() {
+        for (int i = 0; i < particles.size(); i++){
+          particles[i].animate();
+            if (path[i].size() < 100)
+                path[i].push_back(particles[i].pos);
+        }
     }
 
     void pickBackgroundColor() {
@@ -153,7 +178,7 @@ public :
     void adjustCamera( point3d const & bb , point3d const & BB ) {
         point3d const & center = ( bb + BB )/2.f;
         setSceneCenter( qglviewer::Vec( center[0] , center[1] , center[2] ) );
-        setSceneRadius( 1.5f * ( BB - bb ).norm() );
+        setSceneRadius( 10 * ( BB - bb ).norm() );
         showEntireScene();
     }
 
@@ -195,8 +220,10 @@ public :
         center_line.clear();
         drawing = true;
         pen_down = false;
-        control_points = true;
+        control_points = false;
         showGrid = false;
+
+        startAnimation();
     }
 
     QString helpString() const {
@@ -233,6 +260,20 @@ public :
         }
         else if (event->key() == Qt::Key_F) {
             center_line.filter();
+            update();
+        }
+        else if (event->key() == Qt::Key_Space) {
+            toggleAnimation();
+        }
+        else if (event->key() == Qt::Key_P) {
+            path.resize(20);
+            for (int n = 0; n < 20; ++n) {
+                particle p;
+                p.pos = field.curve.getValue(0.05 * n) + point3d(10, 0, 0);
+                p.field = field;
+                particles.push_back(p);
+                path[n].push_back(p.pos);
+            }
             update();
         }
         else if( event->key() == Qt::Key_T ) {
@@ -292,6 +333,12 @@ public :
     void mouseReleaseEvent(QMouseEvent* e  ) {
         pen_down = false;
         drawing = false;
+
+        bezierCurve<point3d> curve;
+        curve.control_p = center_line.positions;
+        field.curve = curve;
+        field.init();
+
         QGLViewer::mouseReleaseEvent(e);
     }
 
@@ -418,7 +465,7 @@ public slots:
 
     void clear() {
         center_line.clear();
-
+        particles.clear();
         field.clear();
 
         setSceneCenter( qglviewer::Vec( 0 , 0 , 0 ) );
@@ -429,10 +476,6 @@ public slots:
 
     void grid() {
 
-        bezierCurve<point3d> curve;
-        curve.control_p = center_line.positions;
-        field.curve = curve;
-        field.init();
         field.computeGrid();
         field.computePolygon(20);
         field.computePolygon(10);

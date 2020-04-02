@@ -111,6 +111,26 @@ public :
         triangles.push_back(polygon);
     }
 
+    point3d computeVelocity (point3d x) {
+        if (curve.control_p.empty()){
+            return point3d(0, 0, 0);
+        }
+        point3d r = x - curve.getValue(0);
+        point3d q;
+        float t = curve_step;
+        while (t < 1) {
+            point3d newr = x - curve.getValue(t);
+            if (newr.sqrnorm() < r.sqrnorm()) {
+                r = newr;
+                q = curve.getDerivative(t);
+            }
+            t += curve_step;
+        }
+        point3d c = point3d::cross(q, r);
+        float r_e = sqrt(r.sqrnorm() + pow(epsilon, 2));
+        return - a * (1/pow(r_e,3)+ 3*pow(epsilon, 3) / (2*pow(r_e, 5))) * c;
+    }
+
 
 };
 
