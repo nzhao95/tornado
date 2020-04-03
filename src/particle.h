@@ -23,7 +23,7 @@ public :
     }
 
     void animate() {
-        pos = pos + advectedTrajectory + point3d(0.5*(0.5-rand()/RAND_MAX), (0.2-rand()/RAND_MAX), 0.5 * (0.5-rand()/RAND_MAX));
+        pos = pos + advectedTrajectory ;
     }
 
     void draw() {

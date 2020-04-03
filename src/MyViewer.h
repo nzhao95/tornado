@@ -92,6 +92,7 @@ public :
         glEnable(GL_DEPTH_TEST);
         glEnable( GL_LIGHTING );
         glColor3f(0.5,0.5,0.8);
+
         glBegin(GL_TRIANGLES);
         for( unsigned int t = 0 ; t < mesh.triangles.size() ; ++t ) {
             point3d const & p0 = mesh.vertices[ mesh.triangles[t][0] ].p;
