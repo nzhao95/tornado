@@ -268,8 +268,6 @@ public :
             toggleAnimation();
         }
         else if (event->key() == Qt::Key_P) {
-            if (field.isEmpty())
-                break;
             path.resize(20);
             for (int n = 0; n < 20; ++n) {
                 particle p;
@@ -280,8 +278,6 @@ public :
             update();
         }
         else if (event->key() == Qt::Key_A) {
-            if (field.isEmpty())
-                break;
             for (int n = 0; n < 100; ++n) {
                 particle p;
                 p.pos = field.curve.getValue(0.1) + point3d(10 * cos(n), 0, 10*sin(n));
