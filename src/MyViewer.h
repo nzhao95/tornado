@@ -181,8 +181,9 @@ public :
     void adjustCamera( point3d const & bb , point3d const & BB ) {
         point3d const & center = ( bb + BB )/2.f;
         setSceneCenter( qglviewer::Vec( center[0] , center[1] , center[2] ) );
-        setSceneRadius( 10 * ( BB - bb ).norm() );
+        setSceneRadius( 1.5f * ( BB - bb ).norm() );
         showEntireScene();
+        setSceneRadius( 10 * ( BB - bb ).norm() );
     }
 
 
