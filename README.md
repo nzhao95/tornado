@@ -18,6 +18,6 @@ check that you have now in the repertory a file that looks like "libQGLViewer.so
 
 ## Shortkeys 
 
-D : after drawing a 2D line, convert it in 3D
-A : creates particles around the curve
-P : Draws the paths of particles around the curve 
+D : after drawing a 2D line, convert it in 3D  
+A : creates particles around the curve  
+P : Draws the paths of particles around the curve   
