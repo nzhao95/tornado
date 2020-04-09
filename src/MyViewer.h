@@ -48,6 +48,7 @@ class MyViewer : public QGLViewer , public QOpenGLFunctions_4_3_Core
     int pen_down;
     bool control_points;
     bool showGrid;
+    int animationMode;
 
     vector<vector<point3d>> path;
 
@@ -163,11 +164,15 @@ public :
     }
 
     void animate() {
-        field.animate();
-        if (path.size() > 0) {
-            for (unsigned int i = 0; i < field.particles.size(); i++){
-                if (path[i].size() < 50)
-                    path[i].push_back(field.particles[i].pos);
+        if (animationMode == 0)
+            field.animate();
+        else {
+            field.pathAnimation();
+            if (path.size() > 0) {
+                for (unsigned int i = 0; i < field.particles.size(); i++){
+                    if (path[i].size() < 100)
+                        path[i].push_back(field.particles[i].pos);
+                }
             }
         }
     }
@@ -228,6 +233,7 @@ public :
         pen_down = -1;
         control_points = false;
         showGrid = false;
+        animationMode = 0;
 
     }
 
@@ -260,13 +266,8 @@ public :
             help();
         }
         else if (event->key() == Qt::Key_D) {
-            center_line.make3d();
 
-            for (unsigned int n = 0; n < center_line.size; ++n){
-                bezierCurve<point3d> curve;
-                curve.control_p = center_line.control_p[n];
-                field.addCurve(curve, center_line.times[n]);
-            }
+            center_line.make3d();
 
             update();
         }
@@ -278,6 +279,12 @@ public :
             toggleAnimation();
         }
         else if (event->key() == Qt::Key_P) {
+            field.clear();
+            for (unsigned int n = 0; n < center_line.size; ++n){
+                bezierCurve<point3d> curve;
+                curve.control_p = center_line.control_p[n];
+                field.addCurve(curve, center_line.times[n]);
+            }
             path.resize(20);
             for (int n = 0; n < 20; ++n) {
                 particle p;
@@ -285,9 +292,18 @@ public :
                 field.addParticle(p);
                 path[n].push_back(p.pos);
             }
+            animationMode = 1;
+            startAnimation();
             update();
         }
         else if (event->key() == Qt::Key_A) {
+            field.clear();
+            for (unsigned int n = 0; n < center_line.size; ++n){
+                bezierCurve<point3d> curve;
+                curve.control_p = center_line.control_p[n];
+                field.addCurve(curve, center_line.times[n]);
+            }
+            animationMode = 0;
             startAnimation();
         }
         else if( event->key() == Qt::Key_T ) {
@@ -325,7 +341,7 @@ public :
             bool found;
             float t = 0;
             if (center_line.size > 0)
-                t = 1;
+                t = center_line.times.back() + 1;
             center_line.addCurve(t);
             pen_down = center_line.control_p.size() - 1;
             center_line.addPointToCurve(camera()->pointUnderPixel(e->pos(), found), pen_down);

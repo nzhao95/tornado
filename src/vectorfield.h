@@ -17,7 +17,7 @@ public :
     //curve stuff
     std::vector<bezierCurve<point3d>> curves;
     std::vector<float> times;
-    float curve_step = 0.1;
+    float curve_step = 0.05;
 
 
     //grid stuff
@@ -39,7 +39,7 @@ public :
 
     std::vector<particle> particles;
     float current_time = 0;
-    float time_step = 0.01;
+    float time_step = 0.005;
 
     void clear() {
         curves.clear();
@@ -60,15 +60,14 @@ public :
         if (curves.size() == 1)
             return curves[0].getValue(s);
         int start = 0;
-        int end = curves.size()- 1;
-        if (curves.size() > 2) {
+        int end = times.back();
+        float max_t = *std::max_element(times.begin(), times.end());
 
-            for (int n = 0; n < curves.size(); ++n) {
-                if (times[n] < t && times[n] > times[start])
-                    start = n;
-                else if (times[n] > t && times[n] < times[end])
-                    end = n;
-            }
+        for (int n = 0; n < curves.size(); ++n) {
+            if (times[n] < t && times[n] > times[start] && t < max_t)
+                start = n;
+            else if (times[n] > t && times[n] < times[end])
+                end = n;
         }
         float a = (t - times[start])/(times[end] - times[start]);
         return (1-a) * curves[start].getValue(s) + a * curves[end].getValue(s);
@@ -80,9 +79,10 @@ public :
         if (curves.size() == 1)
             return curves[0].getDerivative(s);
         int start = 0;
-        int end = curves.size()- 1;
+        int end = times.back();
+        float max_t = *std::max_element(times.begin(), times.end());
         for (int n = 0; n < curves.size(); ++n) {
-            if (times[n] < t && times[n] > times[start])
+            if (times[n] < t && times[n] > times[start] && t < max_t)
                 start = n;
             else if (times[n] > t && times[n] < times[end])
                 end = n;
@@ -120,20 +120,7 @@ public :
             for (unsigned int j = 0; j < grid_size; ++j) {
                 for (unsigned int k = 0; k < grid_size; ++k) {
                    point3d x = point3d(i*grid_step, j*grid_step, k*grid_step) + grid_bl;
-                   point3d r = x - curveLinearInterpValue(current_time, 0);
-                   point3d q;
-                   float s = curve_step;
-                   while (s < 1) {
-                       point3d newr = x - curveLinearInterpValue(current_time, s);
-                       if (newr.sqrnorm() < r.sqrnorm()) {
-                           r = newr;
-                           q = curveLinearInterpDerivative(current_time, s);
-                       }
-                       s += curve_step;
-                   }
-                   point3d c = point3d::cross(q, r);
-                   float r_e = sqrt(r.sqrnorm() + pow(epsilon, 2));
-                   grid[i][j][k] = - a * (1/pow(r_e,3)+ 3*pow(epsilon, 3) / (2*pow(r_e, 5))) * c;
+                   grid[i][j][k] = computeVelocity(current_time, x);
                 }
             }
         }
@@ -165,6 +152,9 @@ public :
     }
 
     point3d computeVelocity (float t, point3d x) {
+        float sign = curveLinearInterpValue(t, 1)[1]- curveLinearInterpValue(t, 0)[1];
+        if (sign != 0)
+            sign /= abs(sign);
         point3d result;
         if (isEmpty()){
             return point3d(0, 0, 0);
@@ -176,7 +166,7 @@ public :
             point3d c = point3d::cross(q, r);
             float r_e = sqrt(r.sqrnorm() + pow(epsilon, 2));
             result += (- a * (1/pow(r_e,3)+ 3*pow(epsilon, 3) / (2*pow(r_e, 5))) * c) * curve_step;
-            result += (b/r_e + b * 0.5 * pow(epsilon, 2) / pow(r_e, 3)) * q * curve_step;
+            result += (b/r_e + b * 0.5 * pow(epsilon, 2) / pow(r_e, 3)) * sign * q * curve_step;
             s += curve_step;
         }
         return result;
@@ -184,7 +174,7 @@ public :
 
     point3d RungeKutta_RK4(point3d pos) {
         point3d advectedTrajectory = point3d(0,0,0);
-        int nSteps = 2;
+        int nSteps = min(max((int) (computeVelocity(current_time, pos).norm() / 0.5), 1), 5);
         double timeStep = 1.0 / (double)(nSteps);
         for( unsigned int s = 0 ; s < nSteps ; ++s ){
             point3d xN = pos + advectedTrajectory;
@@ -198,17 +188,30 @@ public :
     }
 
     void animate() {
-        if (particles.size() < 100) {
+        if (particles.size() < 50) {
             particle p;
             float x = rand();
-            p.pos = curveLinearInterpValue(current_time, 0.1) + point3d(10 * cos(x), 0, 10*sin(x));
+            if (curveLinearInterpValue(current_time, 0.1)[1] < curveLinearInterpValue(current_time, 0.9)[1])
+                p.pos = curveLinearInterpValue(current_time, 0.1) + point3d(10 * cos(x), 0, 10*sin(x));
+            else
+                p.pos = curveLinearInterpValue(current_time, 0.9) + point3d(10 * cos(x), 0, 10*sin(x));
             addParticle(p);
         }
         for (unsigned int pIt; pIt < particles.size(); ++pIt) {
             particles[pIt].advectedTrajectory = RungeKutta_RK4(particles[pIt].pos);
             particles[pIt].animate();
-            if (particles[pIt].pos[1] > curveLinearInterpValue(current_time, 1)[1])
+            if (particles[pIt].pos[1] > max(curveLinearInterpValue(current_time, 1)[1], curveLinearInterpValue(current_time, 0)[1])
+                    || particles[pIt].pos[1] < min(curveLinearInterpValue(current_time, 1)[1], curveLinearInterpValue(current_time, 0)[1]))
                 deleteParticle(pIt);
+
+        }
+        current_time += time_step;
+    }
+
+    void pathAnimation() {
+        for (unsigned int pIt; pIt < particles.size(); ++pIt) {
+            particles[pIt].advectedTrajectory = RungeKutta_RK4(particles[pIt].pos);
+            particles[pIt].animate();
 
         }
         current_time += time_step;
