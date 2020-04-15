@@ -152,9 +152,6 @@ public :
     }
 
     point3d computeVelocity (float t, point3d x) {
-        float sign = curveLinearInterpValue(t, 1)[1]- curveLinearInterpValue(t, 0)[1];
-        if (sign != 0)
-            sign /= abs(sign);
         point3d result;
         if (isEmpty()){
             return point3d(0, 0, 0);
@@ -166,7 +163,7 @@ public :
             point3d c = point3d::cross(q, r);
             float r_e = sqrt(r.sqrnorm() + pow(epsilon, 2));
             result += (- a * (1/pow(r_e,3)+ 3*pow(epsilon, 3) / (2*pow(r_e, 5))) * c) * curve_step;
-            result += (b/r_e + b * 0.5 * pow(epsilon, 2) / pow(r_e, 3)) * sign * q * curve_step;
+            result += (b/r_e + b * 0.5 * pow(epsilon, 2) / pow(r_e, 3)) * q * curve_step;
             s += curve_step;
         }
         return result;
@@ -187,14 +184,11 @@ public :
         return advectedTrajectory;
     }
 
-    void animate() {
+    void particleAnimation() {
         if (particles.size() < 50) {
             particle p;
             float x = rand();
-            if (curveLinearInterpValue(current_time, 0.1)[1] < curveLinearInterpValue(current_time, 0.9)[1])
-                p.pos = curveLinearInterpValue(current_time, 0.1) + point3d(10 * cos(x), 0, 10*sin(x));
-            else
-                p.pos = curveLinearInterpValue(current_time, 0.9) + point3d(10 * cos(x), 0, 10*sin(x));
+            p.pos = curveLinearInterpValue(current_time, 0.1) + point3d(10 * cos(x), 0, 10*sin(x));
             addParticle(p);
         }
         for (unsigned int pIt; pIt < particles.size(); ++pIt) {

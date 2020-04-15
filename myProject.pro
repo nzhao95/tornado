@@ -21,7 +21,8 @@ HEADERS += ./src/point3.h \
     src/centerline.h \
     src/polygonise.h \
     src/particle.h \
-    src/particle.h
+    src/particle.h \
+    src/densityfield.h
 SOURCES += ./src/main.cpp \
     ./src/gl/GLUtilityMethods.cpp\
     ./src/gl/BasicColors.cpp \

@@ -9,6 +9,7 @@
 #include "beziercurve.h"
 #include "vectorfield.h"
 #include "particle.h"
+#include "densityfield.h"
 
 // Parsing:
 #include "BasicIO.h"
@@ -32,7 +33,6 @@
 #include <QInputDialog>
 #include <QLineEdit>
 
-
 #include "qt/QSmartAction.h"
 
 
@@ -44,11 +44,13 @@ class MyViewer : public QGLViewer , public QOpenGLFunctions_4_3_Core
     Mesh mesh;
     centerLine center_line;
     vectorField field;
+    densityfield density;
     bool drawing;
     int pen_down;
     bool control_points;
     bool showGrid;
     int animationMode;
+    int timer;
 
     vector<vector<point3d>> path;
 
@@ -148,11 +150,10 @@ public :
             glEnd();
         }
 
-        field.draw();
-
-
-        glColor3f(0.5,0.3,0.3);
-        if (path.size() > 0) {
+        if (animationMode == 0)
+            field.draw();
+        else if (animationMode == 1) {
+            glColor3f(0.5,0.3,0.3);
             for (unsigned int i = 0; i < field.particles.size(); i++){
                 glBegin(GL_LINE_STRIP);
                 for (unsigned int j = 0; j < path[i].size(); ++j)
@@ -160,13 +161,35 @@ public :
                 glEnd();
             }
         }
+        else if (animationMode == 2) {
+            for (unsigned int n = 0; n < density.triangles.size(); ++n){
+                glColor4f(n/ (float) density.triangles.size(),n/ (float) density.triangles.size(),n/ (float) density.triangles.size(), 1.0 - n / (float) density.triangles.size());
+                glBegin(GL_TRIANGLES);
+                for( unsigned int t = 0 ; t < density.triangles[n].size() ; ++t ) {
+                    glVertex3f(density.triangles[n][t][0],density.triangles[n][t][1],density.triangles[n][t][2]);
+                }
+                glEnd();
+            }
+//            glBegin(GL_POINTS);
+//            for (unsigned int i = 0; i < density.grid_size-1; ++i) {
+//                for (unsigned int j = 0; j < density.grid_size-1; ++j) {
+//                    for (unsigned int k = 0; k < density.grid_size-1; ++k) {
+//                        if (density.grid[i][j][k] > 0.2) {
+//                            point3d x = density.worldCoord(i,j,k);
+//                            glVertex3f(x[0], x[1], x[2]);
+//                        }
+//                    }
+//                }
+//            }
+//            glEnd();
+        }
 
     }
 
     void animate() {
         if (animationMode == 0)
-            field.animate();
-        else {
+            field.particleAnimation();
+        else if (animationMode == 1){
             field.pathAnimation();
             if (path.size() > 0) {
                 for (unsigned int i = 0; i < field.particles.size(); i++){
@@ -175,6 +198,14 @@ public :
                 }
             }
         }
+        else if (animationMode == 2) {
+            density.updateDensity();
+            density.triangles.clear();
+            density.computePolygon(1);
+            density.computePolygon(0.5);
+            density.computePolygon(0);
+        }
+        timer += 1;
     }
 
     void pickBackgroundColor() {
@@ -305,6 +336,21 @@ public :
             }
             animationMode = 0;
             startAnimation();
+        }
+        else if (event->key() == Qt::Key_S) {
+            field.clear();
+            for (unsigned int n = 0; n < center_line.size; ++n){
+                bezierCurve<point3d> curve;
+                curve.control_p = center_line.control_p[n];
+                field.addCurve(curve, center_line.times[n]);
+            }
+            animationMode = 2;
+            density.vector_field = field;
+            density.init();
+
+        }
+        else if (event->key() == Qt::Key_U) {
+            density.updateDensity();
         }
         else if( event->key() == Qt::Key_T ) {
             if( event->modifiers() & Qt::CTRL )
