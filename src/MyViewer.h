@@ -130,8 +130,18 @@ public :
                 for (unsigned int n = 0; n < field.triangles.size(); ++n){
                     glColor4f(sin(n),cos(n),cos(n+1), 1.0 - n / (float) field.triangles.size());
                     glBegin(GL_TRIANGLES);
-                    for( unsigned int t = 0 ; t < field.triangles[n].size() ; ++t ) {
-                        glVertex3f(field.triangles[n][t][0],field.triangles[n][t][1],field.triangles[n][t][2]);
+//                    for( unsigned int t = 0 ; t < field.triangles[n].size() ; ++t ) {
+//                        glVertex3f(field.triangles[n][t][0],field.triangles[n][t][1],field.triangles[n][t][2]);
+//                    }
+                    for( unsigned int t = 0 ; t < field.triangles[n].size() / 3 ; ++t ) {
+                        point3d const & p0 = field.triangles[n][3*t];
+                        point3d const & p1 = field.triangles[n][3*t + 1];
+                        point3d const & p2 = field.triangles[n][3*t + 2];
+                        point3d const & n = - point3d::cross( p1-p0 , p2-p0 ).direction(); // apparently the triangles are ordered CLOCK-WISE
+                        glNormal3f(n[0],n[1],n[2]);
+                        glVertex3f(p0[0],p0[1],p0[2]);
+                        glVertex3f(p1[0],p1[1],p1[2]);
+                        glVertex3f(p2[0],p2[1],p2[2]);
                     }
                     glEnd();
                 }
