@@ -28,7 +28,8 @@ SOURCES += ./src/main.cpp \
     ./src/gl/BasicColors.cpp \
     src/polygonise.cpp
 
-PKGCONFIG += gsl
+#PKGCONFIG += gsl
+#DEFINES += __USE_GSL_FOR_MAT33
 #DEFINES += USE_GLU_ERROR_STRING
 #PKGCONFIG += glu
 

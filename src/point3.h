@@ -16,7 +16,8 @@ We provide implementation of this, using the GNU Scientific Library.
 Uncomment #define __USE_GSL_FOR_MAT33
 */
 
-#define __USE_GSL_FOR_MAT33
+
+
 #define __USE_OPENGL_METHODS_ON_POINT3
 
 
