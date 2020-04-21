@@ -28,7 +28,9 @@ SOURCES += ./src/main.cpp \
     ./src/gl/BasicColors.cpp \
     src/polygonise.cpp
 
-PKGCONFIG += gsl glu
+PKGCONFIG += gsl
+#DEFINES += USE_GLU_ERROR_STRING
+#PKGCONFIG += glu
 
 LIBS += -lgomp
 

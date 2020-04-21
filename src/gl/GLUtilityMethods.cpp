@@ -13,7 +13,11 @@ inline int __GetOpenGLError ( char* szFile, int iLine )
     int iRetCode = 0;
     GLenum glErr = glGetError();
     while ( glErr != GL_NO_ERROR ) {
+#ifdef USE_GLU_ERROR_STRING
         std::cout << "GLError in file << " << szFile << " @ line " << iLine << ":" << gluErrorString( glErr ) << std::endl;
+#else
+        std::cout << "GLError in file << " << szFile << " @ line " << iLine << ":" << ( glErr ) << std::endl;
+#endif
         iRetCode = 1;
         glErr = glGetError();
     }
@@ -26,7 +30,11 @@ namespace GLCheck{
         int iRetCode;
         GLenum glErr = glGetError();
         while ( glErr != GL_NO_ERROR ) {
-            std::cout << "GLError in file << " << szFile << " @ line " << iLine << " : " << gluErrorString( glErr ) << std::endl;
+#ifdef USE_GLU_ERROR_STRING
+        std::cout << "GLError in file << " << szFile << " @ line " << iLine << ":" << gluErrorString( glErr ) << std::endl;
+#else
+        std::cout << "GLError in file << " << szFile << " @ line " << iLine << ":" << ( glErr ) << std::endl;
+#endif
             iRetCode = 1;
             glErr = glGetError();
         }
