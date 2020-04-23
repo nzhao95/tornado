@@ -3,11 +3,11 @@
 #include <QMainWindow>
 #include <QToolBar>
 #include "MyViewer.h"
-
-
+#include "MyOpenVDB.h"
 
 int main( int argc , char** argv )
 {
+    testOpenVDB();
     QApplication app( argc , argv );
 
     MyViewer * viewer = new MyViewer;

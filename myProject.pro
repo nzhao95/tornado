@@ -4,7 +4,8 @@ DEPENDPATH += .
 INCLUDEPATH += .
 INCLUDEPATH += ./src
 QT += opengl xml
-CONFIG += qt \
+CONFIG += no_keywords \
+    qt \
     link_pkgconfig \
     release
 MOC_DIR = ./tmp/moc
@@ -12,10 +13,11 @@ OBJECTS_DIR = ./tmp/obj
 
 # Input
 HEADERS += ./src/point3.h \
-    ./src/Mesh.h \
-    ./src/MyViewer.h \
-    ./src/gl/GLUtilityMethods.h \
-    ./src/gl/BasicColors.h \
+    src/Mesh.h \
+    src/MyViewer.h \
+    src/MyOpenVDB.h \
+    src/gl/GLUtilityMethods.h \
+    src/gl/BasicColors.h \
     src/beziercurve.h \
     src/vectorfield.h \
     src/centerline.h \
@@ -24,7 +26,8 @@ HEADERS += ./src/point3.h \
     src/particle.h \
     src/densityfield.h
 SOURCES += ./src/main.cpp \
-    ./src/gl/GLUtilityMethods.cpp\
+    ./src/MyOpenVDB.cpp \
+    ./src/gl/GLUtilityMethods.cpp \
     ./src/gl/BasicColors.cpp \
     src/polygonise.cpp
 
@@ -33,7 +36,7 @@ SOURCES += ./src/main.cpp \
 #DEFINES += USE_GLU_ERROR_STRING
 #PKGCONFIG += glu
 
-LIBS += -lgomp
+LIBS += -lgomp -lHalf -ltbb -lopenvdb
 
 EXT_DIR = extern
 

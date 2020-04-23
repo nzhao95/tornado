@@ -299,7 +299,7 @@ public :
 
     void updateTitle( QString text ) {
         this->setWindowTitle( text );
-        emit windowTitleUpdated(text);
+        Q_EMIT windowTitleUpdated(text);
     }
 
     void keyPressEvent( QKeyEvent * event ) {
@@ -430,10 +430,10 @@ public :
         QGLViewer::mouseReleaseEvent(e);
     }
 
-signals:
+Q_SIGNALS:
     void windowTitleUpdated( const QString & );
 
-public slots:
+public Q_SLOTS:
     void open_mesh() {
         bool success = false;
         QString fileName = QFileDialog::getOpenFileName(NULL,"","");
