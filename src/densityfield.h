@@ -1,11 +1,14 @@
 #ifndef DENSITYFIELD_H
 #define DENSITYFIELD_H
 
-
 #include "point3.h"
 #include "vectorfield.h"
 #include <math.h>
 #include <QGLViewer/qglviewer.h>
+#ifdef foreach
+  #undef foreach
+#endif
+#include <openvdb/openvdb.h>
 
 using namespace qglviewer;
 using namespace std;
@@ -76,9 +79,9 @@ public :
 
     float sampleAt(point3d x) {
         point3d coord = gridCoord(x);
-        int i = clamp(static_cast<int>(coord[0]), 0, grid_size - 1);
-        int j = clamp(static_cast<int>(coord[1]), 0, grid_size - 1);
-        int k = clamp(static_cast<int>(coord[2]), 0, grid_size - 1);
+        unsigned int i = clamp(static_cast<int>(coord[0]), 0, grid_size - 1);
+        unsigned int j = clamp(static_cast<int>(coord[1]), 0, grid_size - 1);
+        unsigned int k = clamp(static_cast<int>(coord[2]), 0, grid_size - 1);
         float alpha = coord[0] - i;
         float beta = coord[1] - j;
         float gamma = coord[2] - k;
@@ -152,6 +155,29 @@ public :
         triangles.push_back(polygon);
     }
 
+    void saveVDB () {
+        openvdb::initialize();
+        openvdb::FloatGrid::Ptr vdbGrid =
+            openvdb::FloatGrid::create(/*background value=*/0.0);
+
+        // Get an accessor for coordinate-based access to voxels.
+        openvdb::FloatGrid::Accessor accessor = vdbGrid->getAccessor();
+
+        for (unsigned int i = 0; i < grid_size; ++i) {
+            for (unsigned int j = 0; j < grid_size; ++j) {
+                for (unsigned int k = 0; k < grid_size; ++k) {
+                    openvdb::Coord xyz(i, j, k);
+                    accessor.setValue(xyz, grid[i][j][k]);
+                }
+            }
+        }
+        vdbGrid->setName("Density Field");
+        openvdb::io::File file("mygrids.vdb");
+        openvdb::GridPtrVec grids;
+        grids.push_back(vdbGrid);
+        file.write(grids);
+        file.close();
+    }
 
 };
 

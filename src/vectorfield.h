@@ -63,7 +63,7 @@ public :
         int end = times.back();
         float max_t = *std::max_element(times.begin(), times.end());
 
-        for (int n = 0; n < curves.size(); ++n) {
+        for (unsigned int n = 0; n < curves.size(); ++n) {
             if (times[n] < t && times[n] > times[start] && t < max_t)
                 start = n;
             else if (times[n] > t && times[n] < times[end])
@@ -81,7 +81,7 @@ public :
         int start = 0;
         int end = times.back();
         float max_t = *std::max_element(times.begin(), times.end());
-        for (int n = 0; n < curves.size(); ++n) {
+        for (unsigned int n = 0; n < curves.size(); ++n) {
             if (times[n] < t && times[n] > times[start] && t < max_t)
                 start = n;
             else if (times[n] > t && times[n] < times[end])
@@ -171,7 +171,7 @@ public :
 
     point3d RungeKutta_RK4(point3d pos) {
         point3d advectedTrajectory = point3d(0,0,0);
-        int nSteps = min(max((int) (computeVelocity(current_time, pos).norm() / 0.5), 1), 5);
+        unsigned int nSteps = min(max((int) (computeVelocity(current_time, pos).norm() / 0.5), 1), 5);
         double timeStep = 1.0 / (double)(nSteps);
         for( unsigned int s = 0 ; s < nSteps ; ++s ){
             point3d xN = pos + advectedTrajectory;

@@ -1,6 +1,5 @@
 #ifndef MYVIEWER_H
 #define MYVIEWER_H
-
 // Mesh stuff:
 #include "Mesh.h"
 
@@ -34,7 +33,6 @@
 #include <QLineEdit>
 
 #include "qt/QSmartAction.h"
-
 
 
 class MyViewer : public QGLViewer , public QOpenGLFunctions_4_3_Core
@@ -347,7 +345,7 @@ public :
             animationMode = 0;
             startAnimation();
         }
-        else if (event->key() == Qt::Key_S) {
+        else if (event->key() == Qt::Key_X) {
             field.clear();
             for (unsigned int n = 0; n < center_line.size; ++n){
                 bezierCurve<point3d> curve;
@@ -358,6 +356,9 @@ public :
             density.vector_field = field;
             density.init();
 
+        }
+        else if (event->key() == Qt::Key_S) {
+            density.saveVDB();
         }
         else if (event->key() == Qt::Key_U) {
             density.updateDensity();
@@ -568,6 +569,12 @@ public slots:
     }
 
     void grid() {
+        field.clear();
+        for (unsigned int n = 0; n < center_line.size; ++n){
+            bezierCurve<point3d> curve;
+            curve.control_p = center_line.control_p[n];
+            field.addCurve(curve, center_line.times[n]);
+        }
         field.initGrid();
         field.computeGrid();
         field.computePolygon(20);

@@ -33,7 +33,7 @@ SOURCES += ./src/main.cpp \
 #DEFINES += USE_GLU_ERROR_STRING
 #PKGCONFIG += glu
 
-LIBS += -lgomp
+LIBS += -lgomp -lHalf -ltbb -lopenvdb
 
 EXT_DIR = extern
 
