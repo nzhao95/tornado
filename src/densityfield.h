@@ -5,9 +5,6 @@
 #include "vectorfield.h"
 #include <math.h>
 #include <QGLViewer/qglviewer.h>
-#ifdef foreach
-  #undef foreach
-#endif
 #include <openvdb/openvdb.h>
 
 using namespace qglviewer;

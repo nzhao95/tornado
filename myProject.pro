@@ -4,7 +4,7 @@ DEPENDPATH += .
 INCLUDEPATH += .
 INCLUDEPATH += ./src
 QT += opengl xml
-CONFIG += qt \
+CONFIG += no_keywords \  qt \
     link_pkgconfig \
     release
 MOC_DIR = ./tmp/moc
