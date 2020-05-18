@@ -18,7 +18,7 @@ public :
     point3d grid_bl;
 
     float current_time = 0;
-    float dt = 0.5;
+    float dt = 1;
 
     vectorField vector_field;
 
@@ -52,10 +52,10 @@ public :
             }
         }
 
-        for (unsigned int i = 0; i < grid_size; ++i) {
+        for (unsigned int i = 0; i < grid_size * 0.5; ++i) {
             for (unsigned int j = 0; j < grid_size * 0.1; ++j) {
-                for (unsigned int k = 0; k < grid_size; ++k) {
-                grid[i][j][k] = 1;
+                for (unsigned int k = 0; k < grid_size * 0.5; ++k) {
+                    grid[i*2][j][k*2] = (float) rand()/RAND_MAX;
                 }
             }
         }
@@ -79,45 +79,61 @@ public :
         float alpha = coord[0] - i;
         float beta = coord[1] - j;
         float gamma = coord[2] - k;
+        float result;
         if (i == grid_size - 1) {
             if (j == grid_size -1) {
                 if (k == grid_size - 1)
-                    return grid[i][j][k];
+                    result =  grid[i][j][k];
                 else
-                    return (1-gamma) * grid[i][j][k] + gamma * grid[i][j][k+1];
+                    result =  (1-gamma) * grid[i][j][k] + gamma * grid[i][j][k+1];
             }
             else {
                 if (k == grid_size - 1)
-                    return (1-beta) * grid[i][j][k] + beta* grid[i][j+1][k];
+                    result =  (1-beta) * grid[i][j][k] + beta* grid[i][j+1][k];
                 else
-                    return ( (1 - beta) * ((1 - gamma) * grid[i][j][k] + gamma * grid[i][j][k+1])
+                    result =  ( (1 - beta) * ((1 - gamma) * grid[i][j][k] + gamma * grid[i][j][k+1])
                         + beta * ((1 - gamma) * grid[i][j+1][k] + gamma * grid[i][j+1][k+1]));
             }
         }
         else if (j == grid_size - 1) {
             if (k == grid_size - 1) {
-                return (1-alpha) * grid[i][j][k] + alpha * grid[i+1][j][k];
+                result =  (1-alpha) * grid[i][j][k] + alpha * grid[i+1][j][k];
             }
             else
-                return ( (1 - alpha) * ((1 - gamma) * grid[i][j][k] + gamma * grid[i][j][k+1])
+                result =  ( (1 - alpha) * ((1 - gamma) * grid[i][j][k] + gamma * grid[i][j][k+1])
                         + alpha * ((1 - gamma) * grid[i+1][j][k] + gamma * grid[i+1][j][k+1]));
         }
         else if (k == grid_size - 1)
-            return ( (1 - alpha) * ((1 - beta) * grid[i][j][k] + beta * grid[i][j+1][k])
+            result =  ( (1 - alpha) * ((1 - beta) * grid[i][j][k] + beta * grid[i][j+1][k])
                     + alpha * ((1 - beta) * grid[i+1][j][k] + beta* grid[i+1][j+1][k]));
         else
-            return (1 - alpha) * ( (1 - beta) * ((1 - gamma) * grid[i][j][k] + gamma * grid[i][j][k+1])
+            result =  (1 - alpha) * ( (1 - beta) * ((1 - gamma) * grid[i][j][k] + gamma * grid[i][j][k+1])
                 + beta * ((1 - gamma) * grid[i][j+1][k] + gamma * grid[i][j+1][k+1]))
                 + alpha * ( (1 - beta) * ((1 - gamma) * grid[i+1][j][k] + gamma * grid[i+1][j][k+1])
                 + beta * ((1 - gamma) * grid[i+1][j+1][k] + gamma * grid[i+1][j+1][k+1]));
+        return clamp(result, 0, 1);
     }
 
     void updateDensity() {
         for (unsigned int i = 0; i < grid_size; ++i) {
-            for (unsigned int j = grid_size * 0.1; j < grid_size; ++j) {
+            for (unsigned int j = 0; j < grid_size; ++j) {
                 for (unsigned int k = 0; k < grid_size; ++k) {
                     point3d sample_point = worldCoord(i,j,k) - vector_field.computeVelocity(current_time, worldCoord(i, j, k)) * dt;
                     grid[i][j][k] = sampleAt(sample_point);
+                }
+            }
+        }
+        for (unsigned int i = 0; i < grid_size; ++i) {
+            for (unsigned int j = 0; j < grid_size * 0.1; ++j) {
+                for (unsigned int k = 0; k < grid_size; ++k) {
+                    grid[i][j][k] = 0;
+                }
+            }
+        }
+        for (unsigned int i = 0; i < grid_size * 0.5; ++i) {
+            for (unsigned int j = 0; j < grid_size * 0.1; ++j) {
+                for (unsigned int k = 0; k < grid_size * 0.5; ++k) {
+                    grid[i*2][j][k*2] = (float) rand()/RAND_MAX;
                 }
             }
         }

@@ -23,14 +23,15 @@ public :
     //grid stuff
     std::vector< std::vector< std::vector< point3d >>> grid;
     unsigned int grid_size;
-    float grid_step = 1.f;
+    float grid_step = 0.5f;
     point3d grid_bl;
 
     //kelvinlets stuff
-    float a = 10;
-    float b = 0.05;
-    float epsilon = 0.0001;
-
+    float a = 2;
+    float epsilon_a = 5;
+    float b = 1;
+    float epsilon = 1;
+    float epsilon2 = 5;
     //polygon stuff
 
     std::vector<std::vector<point3d>> triangles;
@@ -161,9 +162,15 @@ public :
             point3d r = x - curveLinearInterpValue(t, s);
             point3d q = curveLinearInterpDerivative(t, s);
             point3d c = point3d::cross(q, r);
+            float r_ea = sqrt(r.sqrnorm() + pow(epsilon_a, 2));
+            float r_ea2 = sqrt(r.sqrnorm() + pow(epsilon_a * 5, 2));
             float r_e = sqrt(r.sqrnorm() + pow(epsilon, 2));
-            result += (- a * (1/pow(r_e,3)+ 3*pow(epsilon, 3) / (2*pow(r_e, 5))) * c) * curve_step;
+            float r_e2 = sqrt(r.sqrnorm() + pow(epsilon2, 2));
+            result += (- a * (1/pow(r_ea,3)+ 3*pow(epsilon_a, 3) / (2*pow(r_ea, 5))) * c) * curve_step;
+            result += (a * (1/pow(r_ea2,3)+ 3*pow(epsilon_a * 5, 3) / (2*pow(r_ea2, 5))) * c) * curve_step;
             result += (b/r_e + b * 0.5 * pow(epsilon, 2) / pow(r_e, 3)) * q * curve_step;
+            result += (-b/r_e2 - b * 0.5 * pow(epsilon2, 2) / pow(r_e2, 3)) * q * curve_step;
+            result += point3d(0, -0.01, 0); //gravity
             s += curve_step;
         }
         return result;
@@ -188,7 +195,8 @@ public :
         if (particles.size() < 50) {
             particle p;
             float x = rand();
-            p.pos = curveLinearInterpValue(current_time, 0.1) + point3d(10 * cos(x), 0, 10*sin(x));
+            float y = (float) rand()/RAND_MAX;
+            p.pos = curveLinearInterpValue(current_time, 0.1) + point3d(y * 10 * cos(x), 0, y * 10* sin(x));
             addParticle(p);
         }
         for (unsigned int pIt; pIt < particles.size(); ++pIt) {

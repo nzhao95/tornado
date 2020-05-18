@@ -208,10 +208,13 @@ public :
         }
         else if (animationMode == 2) {
             density.updateDensity();
-            density.triangles.clear();
-            density.computePolygon(1);
-            density.computePolygon(0.5);
-            density.computePolygon(0);
+//            density.triangles.clear();
+//            density.computePolygon(1);
+//            density.computePolygon(0.5);
+//            density.computePolygon(0);
+            density.saveVDB();
+            if (timer > 1000)
+                stopAnimation();
         }
         timer += 1;
     }
@@ -577,9 +580,9 @@ public Q_SLOTS:
         }
         field.initGrid();
         field.computeGrid();
-        field.computePolygon(20);
-        field.computePolygon(10);
-        field.computePolygon(5);
+        field.computePolygon(2);
+        field.computePolygon(0.5);
+        field.computePolygon(1);
         showGrid = true;
         update();
     }

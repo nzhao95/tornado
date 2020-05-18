@@ -23,7 +23,7 @@ public :
     }
 
     void animate() {
-        pos = pos + advectedTrajectory ;
+        pos = pos + advectedTrajectory;
     }
 
     void draw() {
