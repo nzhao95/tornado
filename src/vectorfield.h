@@ -8,7 +8,7 @@
 #include "beziercurve.h"
 #include "polygonise.h"
 #include "particle.h"
-
+#include "noise.h"
 
 class vectorField{
 
@@ -27,11 +27,14 @@ public :
     point3d grid_bl;
 
     //kelvinlets stuff
-    float a = 2;
-    float epsilon_a = 5;
-    float b = 1;
+    float a = 20;
+    float epsilon_a = 1;
+    float b = 0.2;
     float epsilon = 1;
-    float epsilon2 = 5;
+    float epsilon2 = 7;
+
+    Noise vortices;
+
     //polygon stuff
 
     std::vector<std::vector<point3d>> triangles;
@@ -40,22 +43,29 @@ public :
 
     std::vector<particle> particles;
     float current_time = 0;
-    float time_step = 0.005;
+    float time_step = 0.5;
+
+    float curve_speed = 0.01;
 
     void clear() {
         curves.clear();
         grid.clear();
         triangles.clear();
         particles.clear();
+        vortices.clear();
     }
+
+    /// Curve stuff
 
     void addCurve(bezierCurve<point3d> curve, float t ) {
         curves.push_back(curve);
         times.push_back(t);
+        initVortices();
     }
 
 
     point3d curveLinearInterpValue(float t, float s) {
+        t = t * curve_speed;
         if (curves.size() == 0)
             return point3d(0,0,0);
         if (curves.size() == 1)
@@ -75,6 +85,7 @@ public :
     }
 
     point3d curveLinearInterpDerivative(float t, float s) {
+        t = t * curve_speed;
         if (curves.size() == 0)
             return point3d(0,0,0);
         if (curves.size() == 1)
@@ -90,6 +101,26 @@ public :
         }
         float a = (t - times[start])/(times[end] - times[start]);
         return (1-a) * curves[start].getDerivative(s) + a * curves[end].getDerivative(s);
+    }
+
+    void initVortices() {
+        float s = 0;
+        point3d bb(FLT_MAX,FLT_MAX,FLT_MAX) , BB(-FLT_MAX,-FLT_MAX,-FLT_MAX);
+        while (s<1) {
+            bb = point3d::min(bb , curveLinearInterpValue(0, s));
+            BB = point3d::max(BB , curveLinearInterpValue(0, s));
+            s += curve_step;
+        }
+        point3d center = (BB + bb) * 0.5;
+        float length = std::max(BB[0] - bb[0], std::max(BB[1] - bb[1], BB[2] - bb[2]));
+        grid_size = (unsigned int) ((length + 10) / grid_step);
+        grid_bl = center - point3d(length, length, length) * 0.5 - point3d(5,5,5) / grid_step;
+        vortices.init(grid_size, grid_bl);
+
+    }
+
+    void updateVortices() {
+        vortices.update();
     }
 
     void initGrid() {
@@ -153,7 +184,7 @@ public :
     }
 
     point3d computeVelocity (float t, point3d x) {
-        point3d result;
+        point3d result = point3d(0,0,0);
         if (isEmpty()){
             return point3d(0, 0, 0);
         }
@@ -163,14 +194,15 @@ public :
             point3d q = curveLinearInterpDerivative(t, s);
             point3d c = point3d::cross(q, r);
             float r_ea = sqrt(r.sqrnorm() + pow(epsilon_a, 2));
-            float r_ea2 = sqrt(r.sqrnorm() + pow(epsilon_a * 5, 2));
+            float r_ea2 = sqrt(r.sqrnorm() + pow(epsilon_a * 2, 2));
             float r_e = sqrt(r.sqrnorm() + pow(epsilon, 2));
             float r_e2 = sqrt(r.sqrnorm() + pow(epsilon2, 2));
             result += (- a * (1/pow(r_ea,3)+ 3*pow(epsilon_a, 3) / (2*pow(r_ea, 5))) * c) * curve_step;
-            result += (a * (1/pow(r_ea2,3)+ 3*pow(epsilon_a * 5, 3) / (2*pow(r_ea2, 5))) * c) * curve_step;
+//            result += (a * (1/pow(r_ea2,3)+ 3*pow(epsilon_a * 2, 3) / (2*pow(r_ea2, 5))) * c) * curve_step;
             result += (b/r_e + b * 0.5 * pow(epsilon, 2) / pow(r_e, 3)) * q * curve_step;
             result += (-b/r_e2 - b * 0.5 * pow(epsilon2, 2) / pow(r_e2, 3)) * q * curve_step;
             result += point3d(0, -0.01, 0); //gravity
+            result += vortices.curl(x);
             s += curve_step;
         }
         return result;
@@ -182,10 +214,10 @@ public :
         double timeStep = 1.0 / (double)(nSteps);
         for( unsigned int s = 0 ; s < nSteps ; ++s ){
             point3d xN = pos + advectedTrajectory;
-            point3d k1 = computeVelocity(current_time + timeStep * s * time_step, xN);
-            point3d k2 = computeVelocity(current_time + timeStep * s * time_step, xN + (timeStep/2)*k1);
-            point3d k3 = computeVelocity(current_time + timeStep * s * time_step, xN + (timeStep/2)*k2);
-            point3d k4 = computeVelocity(current_time + timeStep * s * time_step, xN + (timeStep)*k3);
+            point3d k1 = computeVelocity(current_time + timeStep * s, xN);
+            point3d k2 = computeVelocity(current_time + timeStep * s, xN + (timeStep/2)*k1);
+            point3d k3 = computeVelocity(current_time + timeStep * s, xN + (timeStep/2)*k2);
+            point3d k4 = computeVelocity(current_time + timeStep * s, xN + (timeStep)*k3);
             advectedTrajectory += (timeStep/6) * (k1 + 2*k2 + 2*k3 + k4);
         }
         return advectedTrajectory;
@@ -196,11 +228,12 @@ public :
             particle p;
             float x = rand();
             float y = (float) rand()/RAND_MAX;
-            p.pos = curveLinearInterpValue(current_time, 0.1) + point3d(y * 10 * cos(x), 0, y * 10* sin(x));
+            p.pos = curveLinearInterpValue(current_time, 0.1) + point3d(y * 10 * cos(x), y , y * 10* sin(x));
+            p.color = point3d(cos(x), sin(x), cos(x + 0.5));
             addParticle(p);
         }
         for (unsigned int pIt; pIt < particles.size(); ++pIt) {
-            particles[pIt].advectedTrajectory = RungeKutta_RK4(particles[pIt].pos);
+            particles[pIt].advectedTrajectory = RungeKutta_RK4(particles[pIt].pos) * time_step;
             particles[pIt].animate();
             if (particles[pIt].pos[1] > max(curveLinearInterpValue(current_time, 1)[1], curveLinearInterpValue(current_time, 0)[1])
                     || particles[pIt].pos[1] < min(curveLinearInterpValue(current_time, 1)[1], curveLinearInterpValue(current_time, 0)[1]))

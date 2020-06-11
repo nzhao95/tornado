@@ -23,7 +23,8 @@ HEADERS += \
     src/centerline.h \
     src/polygonise.h \
     src/particle.h \
-    src/densityfield.h
+    src/densityfield.h \
+    src/noise.h
 SOURCES += \
     src/main.cpp \
     src/gl/GLUtilityMethods.cpp\

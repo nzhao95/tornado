@@ -14,6 +14,7 @@ class particle {
 
 public :
   point3d pos;
+  point3d color;
   point3d advectedTrajectory;
   float life_span;
 
@@ -27,7 +28,7 @@ public :
     }
 
     void draw() {
-        glColor3f(0, 0, 1.0);
+        glColor3f(color[0], color[1], color[2]);
         glVertex3f(pos[0], pos[1],pos[2]);
     }
 

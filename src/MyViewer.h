@@ -213,7 +213,7 @@ public :
 //            density.computePolygon(0.5);
 //            density.computePolygon(0);
             density.saveVDB();
-            if (timer > 1000)
+            if (timer > 250)
                 stopAnimation();
         }
         timer += 1;
@@ -330,7 +330,7 @@ public :
             path.resize(20);
             for (int n = 0; n < 20; ++n) {
                 particle p;
-                p.pos = field.curveLinearInterpValue(0, 0.05 * n) + point3d(10, 0, 0);
+                p.pos = field.curveLinearInterpValue(0, 0.05 * n) + point3d(2, 0, 0);
                 field.addParticle(p);
                 path[n].push_back(p.pos);
             }
@@ -358,6 +358,7 @@ public :
             animationMode = 2;
             density.vector_field = field;
             density.init();
+            density.saveVDB();
 
         }
         else if (event->key() == Qt::Key_S) {
