@@ -581,9 +581,9 @@ public Q_SLOTS:
         }
         field.initGrid();
         field.computeGrid();
-        field.computePolygon(20);
-        field.computePolygon(10);
+        field.computePolygon(0.5);
         field.computePolygon(5);
+        field.computePolygon(1);
         showGrid = true;
         update();
     }

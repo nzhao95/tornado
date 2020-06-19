@@ -27,13 +27,14 @@ public :
     point3d grid_bl;
 
     //kelvinlets stuff
-    float r_scale = 10;
-    float r_epsilon = 2;
-    float r_theta  = 0.9;
-    float r_lambda = -(pow(r_theta * r_epsilon, 3) / pow(r_epsilon, 3));
-    float t_scale = 0.1;
-    float t_epsilon = 2;
-    float t_theta  = 0.9;
+    float r_scale = 5;
+    float r_epsilon =  5;
+    float r_theta  = 0.8;
+    float r_lambda = -(pow(r_theta, 3) + pow(r_theta, 5));
+    float r_mu  = pow(r_theta, 8);
+    float t_scale = 1.5;
+    float t_epsilon = 5;
+    float t_theta  = 2;
     float t_lambda = - t_theta;
 
     Noise vortices;
@@ -189,12 +190,12 @@ public :
     point3d rotKelvinLet(point3d r, point3d q, float scale, float epsilon) {
         point3d c = point3d::cross(q, r);
         float r_e = sqrt(r.sqrnorm() + pow(epsilon, 2));
-        return - scale * (1/pow(r_e,3)+ 3*pow(epsilon, 2) / (2*pow(r_e, 5))) * c;
+        return - scale * (1/pow(r_e,3) + 1.5 * pow(epsilon, 2) / pow(r_e, 5)) * c;
     }
 
     point3d traKelvinLet(point3d r, point3d q, float scale, float epsilon) {
         float r_e = sqrt(r.sqrnorm() + pow(epsilon, 2));
-        return - scale * ( 1/r_e + 0.5 * pow(epsilon, 2) / pow(r_e, 3)) * q;
+        return scale * ( 1/r_e + 0.5 * pow(epsilon, 2) / pow(r_e, 3)) * q;
     }
 
     point3d computeVelocity (float t, point3d x) {
@@ -207,10 +208,11 @@ public :
             point3d r = x - curveLinearInterpValue(t, s);
             point3d q = curveLinearInterpDerivative(t, s);
             result += rotKelvinLet(r, q, r_scale, r_epsilon) * curve_step +
-                    r_lambda * rotKelvinLet(r, q, r_scale, r_theta * r_epsilon) * curve_step;
-            result += traKelvinLet(r, q, t_scale, t_epsilon) -
-                    traKelvinLet(r, q, t_scale, t_theta * t_epsilon);
-//            result += point3d(0, -0.1, 0); //gravity
+                    r_lambda * rotKelvinLet(r, q, r_scale, r_theta * r_epsilon) * curve_step +
+                    r_mu * rotKelvinLet(r, q, r_scale, pow(r_theta, 2) * r_epsilon) * curve_step;
+//            result += traKelvinLet(r, q, t_scale, t_epsilon) * curve_step -
+//                    traKelvinLet(r, q, t_scale, t_theta * t_epsilon) * curve_step;
+//            result += point3d(0, -0.02, 0); //gravity
 //            result += vortices.curl(x);
             s += curve_step;
         }
@@ -219,7 +221,7 @@ public :
 
     point3d RungeKutta_RK4(point3d pos) {
         point3d advectedTrajectory = point3d(0,0,0);
-        unsigned int nSteps = min(max((int) (computeVelocity(current_time, pos).norm() / 0.5), 1), 5);
+        unsigned int nSteps = 2;
         double timeStep = 1.0 / (double)(nSteps);
         for( unsigned int s = 0 ; s < nSteps ; ++s ){
             point3d xN = pos + advectedTrajectory;
